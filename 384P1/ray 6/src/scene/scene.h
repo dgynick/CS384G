@@ -20,6 +20,7 @@
 #include "material.h"
 #include "camera.h"
 #include "bbox.h"
+#include <math.h>
 
 #include "../vecmath/vec.h"
 #include "../vecmath/mat.h"
@@ -234,7 +235,7 @@ public:
   std::vector<Geometry*> objects;
 
   bool intersect(ray& r, isect& i, const int& tmin, const int& tmax){
-    std::cout<<"traversing tree 1"<<std::endl;
+    //std::cout<<"traversing tree 1"<<std::endl;
     bool have_one = false;
     
     if(leaf){
@@ -248,11 +249,11 @@ public:
 	  }
 	}
       }
-      std::cout<<"traversing tree 2"<<std::endl;
+      //std::cout<<"traversing tree 2"<<std::endl;
     }
     
     else{
-      if(r.d[separationDim] == 0.0){//ray is parrallel to the separation plane, rather unlikely
+      if(abs(r.d[separationDim]) <= 0.0001){//ray is parrallel to the separation plane, rather unlikely
 	if(separationBoundary - r.p[separationDim] > 0){
 	  return left->intersect(r, i, tmin, tmax);
 	}
@@ -275,10 +276,10 @@ public:
 	  }
 	}
       }
-      std::cout<<"traversing tree 3"<<std::endl;
+      //std::cout<<"traversing tree 3"<<std::endl;
       
     }
-    std::cout<<"traversing tree 4"<<std::endl;
+    //std::cout<<"traversing tree 4"<<std::endl;
     return have_one;
     
   }

@@ -90,14 +90,16 @@ bool TrimeshFace::intersect(ray& r, isect& i) const {
 // intersection in alpha, beta and gamma.
 bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 {
-
     const Vec3d& a = parent->vertices[ids[0]];
     const Vec3d& b = parent->vertices[ids[1]];
     const Vec3d& c = parent->vertices[ids[2]];
-
+    //cout<< "starting intersect face"<<endl;
+    //cout<< "a " << a <<endl;
+    //cout<< "b " << b <<endl;
+    //cout<< "c " << c <<endl;
+    //cout<< r.p << endl;
+    //cout<< r.d << endl;
     // YOUR CODE HERE
-    
-    // a,b,c in world coordinates?
 
     //compute surface parameters
     const Vec3d& n = crossprod(a - c, b - c);
@@ -107,14 +109,16 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     const Vec3d& rp = r.getPosition();
     const Vec3d& rd = r.getDirection();
     double t = n * rd;
-    if(n.length() > 1000 * t){
+    if(abs(t) < RAY_EPSILON){
       //parallel
+      //cout << "parrallel"<<endl;
       return false;
     }
 
     t = -(n * rp + d)/t;
     
-    if(t < 0){
+    if(t < RAY_EPSILON){
+ //cout << "negative t"<<endl;
       return false;
     }
     
@@ -123,7 +127,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     //compute bary coords
     //to-do: consider the case where abc is a line after being projected to x-y plane?
     Vec3d p = rp + t * rd;
-    double abx = b[0] - a[0];
+    /*double abx = b[0] - a[0];
     double aby = b[1] - a[1];
     double acx = c[0] - a[0];
     double acy = c[1] - a[1];
@@ -134,14 +138,31 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     double sabc = abx * acy - aby * acx;
     double sabp = abx * apy - aby * apx;
     double sapc = apx * acy - apy * acx;
-
+    
     double beta = sapc/sabc;
     double gamma = sabp/sabc;
     double alpha = 1 - beta - gamma;
-
+    
     if(alpha < 0 || beta < 0 || gamma < 0){
+
+      return false;
+
+    }
+    */
+    
+    Vec3d sabc = crossprod(a-c, b-c);
+    Vec3d sapc = crossprod(a-c, p-c);
+    Vec3d sabp = crossprod(a-p, b-p);
+    Vec3d spbc = crossprod(p-c, b-c);
+
+    if(sabc*sapc < 0 || sabc*sabp < 0 || spbc*sabc < 0){
+ //cout << "outside triangle"<<endl;
       return false;
     }
+    double beta = sapc.length()/sabc.length();
+    double gamma = sabp.length()/sabc.length();
+    double alpha = 1 - beta - gamma;    
+
     i.setBary(alpha, beta, gamma);
 
     i.setObject(this);
@@ -153,9 +174,8 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     }else{
 		 i.setN(this->normal);//if parent-> vertnorm = true then need to use bary
     }
+ //cout << "t value " << i.t <<endl;
 
-
-    //to-do: set uv
     return true;
 }
 

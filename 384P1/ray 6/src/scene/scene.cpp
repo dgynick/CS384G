@@ -63,11 +63,6 @@ Scene::~Scene() {
 // Get any intersection with an object.  Return information about the 
 // intersection through the reference parameter.
 bool Scene::intersect(ray& r, isect& i) const {
-	double tmin = 0.0;
-	double tmax = 0.0;
-	if(!sceneBounds.intersect(r, tmin, tmax)){
-	  return false;
-	}
 	
 	bool have_one = false;
 
@@ -82,10 +77,17 @@ bool Scene::intersect(ray& r, isect& i) const {
 			}
 		}
 	}
+
+
+        //bounded objects
 	isect cur;
-	if(kdtree -> intersect(r, cur, tmin, tmax)){
+        double tmin = 0.0;
+	double tmax = 0.0;
+        
+	if(sceneBounds.intersect(r, tmin, tmax) && kdtree -> intersect(r, cur, tmin, tmax)){
 	  if(!have_one || cur.t < i.t){
 	    i = cur;
+            have_one = true;
 	  }
 	}
 
@@ -113,7 +115,7 @@ void Scene::buildKdTree(){
   kdtree = new KdTree();
   kdtree->objects = boundedobjects;
 
-  
+  cout<<"building kd tree"<<endl;
   if(boundedobjects.size() <= (traceUI -> getKdMaxLeafSize()) || traceUI -> getKdMaxDepth() == 0){
     kdtree->leaf = true;
     return;
