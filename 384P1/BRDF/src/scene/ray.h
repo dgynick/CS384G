@@ -56,12 +56,13 @@ public:
 class isect
 {
 public:
-    isect() : obj( NULL ), t( 0.0 ), N(), material(0) {}
+    isect() : obj( NULL ), t( 0.0 ), N(),tangent(), material(0) {}
 	isect(const isect& other)
 	{
 		obj = other.obj;
 		t = other.t;
 		N = other.N;
+                tangent = other.tangent;
 		bary = other.bary;
 		uvCoordinates = other.uvCoordinates;
 		if (other.material) material = new Material(*other.material);
@@ -75,6 +76,7 @@ public:
             obj = other.obj;
             t = other.t;
             N = other.N;
+            tangent = other.tangent;
 			bary = other.bary;
             uvCoordinates = other.uvCoordinates;
 			if( other.material ) {
@@ -92,6 +94,7 @@ public:
     void setObject(const SceneObject *o) { obj = o; }
     void setT(double tt) { t = tt; }
     void setN(const Vec3d& n) { N = n; }
+    void setTangent(const Vec3d& t){ tangent = t; } 
     void setMaterial(const Material& m)  { if(material) *material = m; else material = new Material(m); }
     void setUVCoordinates( const Vec2d& coords ) { uvCoordinates = coords; }
     void setBary(const Vec3d& weights) { bary = weights; }
@@ -103,6 +106,7 @@ public:
     const SceneObject *obj;
     double t;
     Vec3d N;
+    Vec3d tangent;
     Vec2d uvCoordinates;
     Vec3d bary;
     Material *material;         // if this intersection has its own material

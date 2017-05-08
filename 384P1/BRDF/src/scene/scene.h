@@ -234,16 +234,21 @@ public:
     //leaf
   std::vector<Geometry*> objects;
 
-  bool intersect(ray& r, isect& i, const int& tmin, const int& tmax){
+  bool intersect(ray& r, isect& i, const double& tmin, const double& tmax){
+    if(i.t < tmin){
+        return false;
+    }
     //std::cout<<"traversing tree 1"<<std::endl;
     bool have_one = false;
     
     if(leaf){
+      //std::cout<<"traversing leaf node"<<std::endl;
+      //std::cout<<objects.size()<<std::endl;
       typedef std::vector<Geometry*>::const_iterator iter;
       for(iter j = objects.begin(); j!= objects.end(); j++){
 	isect cur;
 	if((*j)-> intersect(r, cur)){
-	  if(!have_one || cur.t < i.t){
+	  if(cur.t < i.t){
 	    have_one = true;
 	    i = cur;
 	  }
@@ -253,6 +258,9 @@ public:
     }
     
     else{
+      //std::cout<<"traversing nonleaf node"<<std::endl;
+      //std::cout<<separationDim<<std::endl;
+      //std::cout<<separationBoundary<<std::endl;
       if(abs(r.d[separationDim]) <= 0.0001){//ray is parrallel to the separation plane, rather unlikely
 	if(separationBoundary - r.p[separationDim] > 0){
 	  return left->intersect(r, i, tmin, tmax);
@@ -263,17 +271,24 @@ public:
       }
       else{
 	double t = (separationBoundary - r.p[separationDim])/r.d[separationDim];
-	if(t < tmax){
-	  have_one = (r.d[separationDim] > 0?right:left) -> intersect(r, i, t, tmax);
+	/*if(t < tmax){
+	  have_one = (r.d[separationDim] > 0?right:left) -> intersect(r, i, max(tmin,t), tmax);
 	}
 	if(t > tmin && t > 0){
 	  isect cur;
-	  if((r.d[separationDim] > 0?left:right) -> intersect(r, cur, tmin, t)){
+	  if((r.d[separationDim] > 0?left:right) -> intersect(r, cur, tmin, min(t, tmax))){
 	    if(!have_one || cur.t < i.t){
 	      have_one = true;
 	      i = cur;
 	    }
 	  }
+	}*/
+        if(t > tmin && t > 0){
+          have_one = (r.d[separationDim] > 0?left:right) -> intersect(r, i, tmin, min(t, tmax));
+	}
+        if(t < tmax){
+	  have_one = have_one|(r.d[separationDim] > 0?right:left) -> intersect(r, i, max(tmin,t), tmax);
+
 	}
       }
       //std::cout<<"traversing tree 3"<<std::endl;
