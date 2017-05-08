@@ -2,6 +2,8 @@
 #include "ray.h"
 #include "light.h"
 #include "../ui/TraceUI.h"
+#include <math.h>
+#include <algorithm>
 extern TraceUI* traceUI;
 
 #include "../fileio/bitmap.h"
@@ -9,6 +11,10 @@ extern TraceUI* traceUI;
 
 using namespace std;
 extern bool debugMode;
+
+#define ALPHA_X 0.05
+#define ALPHA_Y 0.16 
+#define PI 3.1415926
 
 // Apply the phong model to this point on the surface of the object, returning
 // the color of that point.
@@ -46,7 +52,16 @@ Vec3d Material::shade(Scene *scene, const ray& r, const isect& i) const
   Vec3d N = i.N;
   Vec3d d = r.getDirection();
   Vec3d V = d - 2 * (d * N) * N;
-  
+  Vec3d binormal = crossprod(i.N, i.tangent);
+  binormal.normalize();
+ 
+  double dotVN = V * i.N;//cos theta r
+  double sinThetaR = sqrt(1 - dotVN * dotVN);
+  double cosPhiR = -d * i.tangent;
+  double sinPhiR = -d * binormal;
+
+
+
   if(i.N * r.getDirection() > 0){
     N = -N;
   }
@@ -61,7 +76,29 @@ Vec3d Material::shade(Scene *scene, const ray& r, const isect& i) const
     Vec3d atten = l -> shadowAttenuation(r, Q) * l -> distanceAttenuation(Q);
     tempc = l->getColor();
     tempc *= atten;
-    tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i) * pow(max(V * l -> getDirection(Q), 0.0), shininess(i));
+    
+    Vec3d L = l -> getDirection(Q);
+    double dotLN = i.N * L;//cos theta i
+
+    Vec3d halfway = (L - r.getDirection());
+    halfway.normalize();
+    float dotHN = halfway * i.N;
+    float dotHTAlphaX = halfway * i.tangent/ALPHA_X;
+    float dotHBAlphaY = halfway * binormal/ALPHA_Y;
+    tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i)/(4 * PI *ALPHA_X * ALPHA_Y) * sqrt(max(0.0, dotLN/dotVN)) * exp(-2.0 * (dotHTAlphaX * dotHTAlphaX + dotHBAlphaY * dotHBAlphaY)/(1.0 + dotHN));
+    
+    /*double sinThetaI = sqrt(1 - dotLN * dotLN);
+    double cosPhiI = L * i.tangent;
+    double sinPhiI = L * binormal;
+    double hnorm = sqrt(2 + 2 * sinThetaI * sinThetaR * (sinPhiI * sinPhiR + cosPhiI * cosPhiR) + 2 * dotLN * dotVN);
+    double dotHTAlphaX = (sinThetaR * cosPhiR + sinThetaI * cosPhiI)/hnorm/ALPHA_X;
+    double dotHBAlphaY = (sinThetaR * sinPhiR + sinThetaI * sinPhiI)/hnorm/ALPHA_Y;
+    double dotHN = (dotLN + dotVN)/hnorm;
+    tempc *= sinThetaI;
+    tempc *= kd(i) * dotLN/PI  + ks(i)/(4 * PI *ALPHA_X * ALPHA_Y) * sqrt(max(0.0, dotLN/dotVN)) * exp(-2.0 * (dotHTAlphaX * dotHTAlphaX + dotHBAlphaY * dotHBAlphaY)/(1.0 + dotHN));*/
+    
+    
+    //tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i) * pow(max(V * l -> getDirection(Q), 0.0), shininess(i));
     color += tempc;
   }
 

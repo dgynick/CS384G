@@ -37,6 +37,15 @@ bool Sphere::intersectLocal(ray& r, isect& i) const
 		i.N.normalize();
 	}
 
+        //compute tangent
+        if(abs(i.N[1]) + abs(i.N[0]) > 0.0001){
+                i.tangent = Vec3d(i.N[1], -i.N[0], 0.0);
+                i.tangent.normalize();
+        } 
+        else{
+                i.tangent = Vec3d(1.0, 0.0, 0.0);
+        }
+
 	return true;
 }
 

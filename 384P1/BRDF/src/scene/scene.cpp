@@ -30,6 +30,7 @@ bool Geometry::intersect(ray& r, isect& i) const {
 	{
 		// Transform the intersection point & normal returned back into global space.
 		i.N = transform->localToGlobalCoordsNormal(i.N);
+                i.tangent = transform->localToGlobalCoordsNormal(i.tangent);
 		i.t /= length;
 		rtrn = true;
 	}
@@ -78,20 +79,18 @@ bool Scene::intersect(ray& r, isect& i) const {
 		}
 	}
 
+        if(!have_one){
+                i.t = 1.0e308;
+        }
 
         //bounded objects
-	isect cur;
         double tmin = 0.0;
 	double tmax = 0.0;
         
-	if(sceneBounds.intersect(r, tmin, tmax) && kdtree -> intersect(r, cur, tmin, tmax)){
-	  if(!have_one || cur.t < i.t){
-	    i = cur;
-            have_one = true;
-	  }
+	if(sceneBounds.intersect(r, tmin, tmax) && kdtree -> intersect(r, i, max(tmin, 0.0), tmax)){
+           have_one = true;
 	}
 
-	
 	if(!have_one) i.setT(1000.0);
 	// if debugging,
 	if (TraceUI::m_debug) intersectCache.push_back(std::make_pair(new ray(r), new isect(i)));
