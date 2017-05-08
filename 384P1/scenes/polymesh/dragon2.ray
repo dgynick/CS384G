@@ -13,7 +13,7 @@ directional_light {
 polymesh {
   name="";
   material={
-    diffuse=( 0.7,0.7,0.7);
+    diffuse=( 1.0, 1.0, 1.0);
     ambient=( 0.1,0.1,0.1);
     specular=( 0.7,0.7,0.7);
     reflective=( 0.7, 0.7, 0.7);

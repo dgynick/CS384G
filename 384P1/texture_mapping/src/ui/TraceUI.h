@@ -64,7 +64,7 @@ protected:
 	bool		m_usingCubeMap;  // render with cubemap
 	bool		m_gotCubeMap;  // cubemap defined
 	int m_nFilterWidth;  // width of cubemap filter
-	int kdMaxDepth = 5;
+	int kdMaxDepth = 0;
 	int kdMaxLeafSize = 5;
 };
 

@@ -6,6 +6,7 @@
 #include "scene/light.h"
 #include "scene/material.h"
 #include "scene/ray.h"
+#include "TextureMapper.h"
 
 #include "parser/Tokenizer.h"
 #include "parser/Parser.h"
@@ -38,6 +39,8 @@ Vec3d RayTracer::trace(double x, double y)
   ray r(Vec3d(0,0,0), Vec3d(0,0,0), ray::VISIBILITY);
   scene->getCamera().rayThrough(x,y,r);
   Vec3d ret = traceRay(r, traceUI->getDepth());
+  TextureMapper textureMapper;
+  ret = ret[0] * textureMapper.marble(Vec2d(x * 10, y * 10));
   ret.clamp();
   return ret;
 }
@@ -52,22 +55,16 @@ Vec3d RayTracer::tracePixel(int i, int j, int supersamplePixels)
 
 	if( ! sceneLoaded() ) return col;
         
-        for(int r = 0; r < supersamplePixels; r++){
-                for(int c = 0; c < supersamplePixels; c++){
-                	double x = (i + (r + 0.5)/supersamplePixels - 0.5)/double(buffer_width);
-			double y = (j + (c + 0.5)/supersamplePixels - 0.5)/double(buffer_height);
-                        col += trace(x, y);
-                }
-        }
-        
-
-	
-
+    for(int r = 0; r < supersamplePixels; r++){
+            for(int c = 0; c < supersamplePixels; c++){
+            	double x = (i + (r + 0.5)/supersamplePixels - 0.5)/double(buffer_width);
+		double y = (j + (c + 0.5)/supersamplePixels - 0.5)/double(buffer_height);
+                    col += trace(x , y);
+            }
+    }
 	col /= (supersamplePixels * supersamplePixels);
         
-
-        
-        unsigned char *pixel = buffer + ( i + j * buffer_width ) * 3;
+    unsigned char *pixel = buffer + ( i + j * buffer_width ) * 3;
 	pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
 	pixel[2] = (int)( 255.0 * col[2]);

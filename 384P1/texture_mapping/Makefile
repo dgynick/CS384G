@@ -23,7 +23,7 @@ CC = g++
 .cxx.o: 
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
 
-ALL.O = src/main.o src/getopt.o src/RayTracer.o \
+ALL.O = src/main.o src/getopt.o src/RayTracer.o src/TextureMapper.o \
 	src/ui/CommandLineUI.o src/ui/GraphicalUI.o src/ui/TraceGLWindow.o \
 	src/ui/debuggingView.o src/ui/glObjects.o src/ui/debuggingWindow.o \
 	src/ui/ModelerCamera.o src/ui/CubeMapChooser.o \
@@ -37,6 +37,7 @@ ALL.O = src/main.o src/getopt.o src/RayTracer.o \
 	src/SceneObjects/Box.o src/SceneObjects/Cone.o \
 	src/SceneObjects/Cylinder.o src/SceneObjects/trimesh.o \
 	src/SceneObjects/Sphere.o src/SceneObjects/Square.o
+	
 
 ray: $(ALL.O)
 	$(CC) $(CFLAGS) -o $@ $(ALL.O) $(INCLUDE) $(LIBDIR) $(LIBS)
