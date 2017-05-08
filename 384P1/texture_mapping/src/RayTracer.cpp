@@ -40,7 +40,7 @@ Vec3d RayTracer::trace(double x, double y)
   scene->getCamera().rayThrough(x,y,r);
   Vec3d ret = traceRay(r, traceUI->getDepth());
   TextureMapper textureMapper;
-  ret = ret[0] * textureMapper.marble(Vec2d(x * 10, y * 10));
+  // = ret[1] * textureMapper.fire(Vec2d(x*50 , y*50 ));
   ret.clamp();
   return ret;
 }
