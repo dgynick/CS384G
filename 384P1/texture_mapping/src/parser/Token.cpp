@@ -87,6 +87,7 @@ string getNameForToken( const SYMBOL kind )
     tokenNames[ INDEX ]             = "index";
     tokenNames[ NAME ]              = "name";
     tokenNames[ MAP ]               = "map";
+    tokenNames[ TEXTURE ]           = "texture";
   }
   // search tokenNames table
   std::map<int, string>::const_iterator itr = 
@@ -141,6 +142,7 @@ SYMBOL lookupReservedWord(const string& ident) {
     reservedWords["material"] = MATERIAL;
     reservedWords["materials"] = MATERIALS;
     reservedWords["map"] = MAP;
+    reservedWords["texture"] = TEXTURE;
     reservedWords["name"] = NAME;
     reservedWords["normals"] = NORMALS;
     reservedWords["point_light"] = POINT_LIGHT;

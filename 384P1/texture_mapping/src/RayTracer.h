@@ -19,7 +19,7 @@ public:
         Vec3d tracePixel(int i, int j);
 	Vec3d tracePixel(int i, int j, int supersamplePixels);
 	Vec3d trace(double x, double y);
-	Vec3d traceRay(ray& r, int depth);
+	Vec3d traceRay(ray& r, int depth, double x, double y);
 
 	void getBuffer(unsigned char *&buf, int &w, int &h);
 	double aspectRatio();
