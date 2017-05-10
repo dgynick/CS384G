@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "Sphere.h"
+#include <math.h>
 
 using namespace std;
 
