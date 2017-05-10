@@ -33,6 +33,7 @@ public:
 	double turbulence(Vec2d pos, double pixelSize);
 	Vec3d marble(Vec2d pos);
 	Vec3d cloud(Vec2d pos);
+	Vec3d fire(Vec2d pos);
 };
 
 #endif // _TEXTUREMAPPER_H__

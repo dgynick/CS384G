@@ -17,6 +17,8 @@ void init(void);
 void normalize2(double v[2]);
 void normalize3(double v[3]);
 
+Vec3d HSLtoRGB(Vec3d hsl);
+
 double PerlinNoise1D(double x,double alpha,double beta,int n);
 double PerlinNoise2D(double x,double y,double alpha,double beta,int n);
 double PerlinNoise3D(double x,double y,double z,double alpha,double beta,int n);
@@ -27,7 +29,7 @@ TextureMapper::~TextureMapper() {}
 double TextureMapper::turbulence(Vec2d pos, double pixelSize) {
 	double x = 0.0, scale = pixelSize;
 	while (scale > 1) {
-		x += abs(PerlinNoise2D(pos[0] / scale, pos[1] / scale, 2.0, 2.0, 10) * scale);
+		x += fabs(PerlinNoise2D(pos[0] / scale, pos[1] / scale, 2.0, 2.0, 10) * scale);
 		scale /= 2;
 	}
 	return x / pixelSize;
@@ -35,13 +37,60 @@ double TextureMapper::turbulence(Vec2d pos, double pixelSize) {
 
 Vec3d TextureMapper::marble(Vec2d pos) {
 	Vec3d rgb;
-	double x = sin((pos[1] + 3.0 * turbulence(Vec2d(pos[0] * 10, pos[1] * 10), 64)) * 0.5 * PI);
+	double x = sin((pos[1] + 8.0 * turbulence(Vec2d(pos[0] * 10, pos[1] * 10), 64)) *  PI);
 	x = sqrt(x + 1) * 0.7071;
 	rgb[1] = 0.3 + 0.8 * x;
 	x = sqrt(x);
 	rgb[0] = 0.3 + 0.6 * x;
 	rgb[2] = 0.6 + 0.4 * x;
 	return rgb;
+}
+
+Vec3d TextureMapper::cloud(Vec2d pos) {
+   Vec3d rgb;
+   double L = 192.0 + (turbulence(pos, 64) / 4) * 255;
+   Vec3d color = HSLtoRGB(Vec3d(2.0/3,1,L/255));
+   rgb[0] = color[0] / 255.0;
+   rgb[1] = color[1] / 255.0;
+   rgb[2] = color[2] / 255.0;
+   return rgb;
+}
+
+Vec3d TextureMapper::fire(Vec2d pos) {
+   Vec3d rgb;
+   double H = fabs(sin(pos[0] * 0.2+ (5.0*turbulence(Vec2d(pos[0] , pos[1] ), 64)) * PI) + sin( pos[1]*0.2 + (5.0*turbulence(Vec2d(512 - pos[1], 512 - pos[0]), 64)) * PI)) / 2.0 / 6.0;
+   Vec3d color = HSLtoRGB(Vec3d(1/6.0-H, 1.0, 0.5));
+   rgb[0] = color[0] / 255.0;
+   rgb[1] = color[1] / 255.0;
+   rgb[2] = color[2] / 255.0;
+   return rgb;
+}
+
+double HUEtoRGB(Vec3d pqt) {
+   double p = pqt[0], q = pqt[1], t = pqt[2];
+   if(t < 0) t += 1;
+   if(t > 1) t -= 1;
+   if(t < 1.0/6) return p + (q - p) * 6 * t;
+   if(t < 1.0/2) return q;
+   if(t < 2.0/3) return p + (q - p) * (2.0/3 - t) * 6;
+   return p;
+}
+
+Vec3d HSLtoRGB(Vec3d hsl) {
+   double h = hsl[0];
+   double s = hsl[1];
+   double l = hsl[2];
+   if (s == 0){
+      return Vec3d(l*255, l*255, l*255);
+   }
+   else {
+      double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      double p = 2 * l - q; 
+      double r = HUEtoRGB(Vec3d(p, q, h + 1.0/3));
+      double g = HUEtoRGB(Vec3d(p, q, h));
+      double b = HUEtoRGB(Vec3d(p, q, h - 1.0/3));
+      return Vec3d(r*255, g*255, b*255);
+   }
 }
 
 
