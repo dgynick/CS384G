@@ -30,7 +30,6 @@ bool Geometry::intersect(ray& r, isect& i) const {
 	{
 		// Transform the intersection point & normal returned back into global space.
 		i.N = transform->localToGlobalCoordsNormal(i.N);
-                i.tangent = transform->localToGlobalCoordsNormal(i.tangent);
 		i.t /= length;
 		rtrn = true;
 	}
