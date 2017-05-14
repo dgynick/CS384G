@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <vector>
 #include <stdio.h>
+#include <stdlib.h> 
+#include <math.h>
 
 using namespace std;
 
@@ -109,7 +111,114 @@ int compareBoundary(const pair<int, double>& p1, const pair<int, double>& p2){
   
 }
 
+void Scene::buildAreaLight(RayTracer* rt){
+  cout<<"building Layer Attenuation map"<<endl;
+  //layeredAttenuation.clear();
+  //sample area light position 
+  //for each position, trace a ray
+  //warping to the (x',y',z') in the center
+  //construct layered map
+  PointLight* l = (PointLight*) lights[0];
+  Vec3d lightPos = l->position;
+  center = camera;
+  center.setEye(lightPos);
 
+  cout<<"center: "<<lightPos<<endl;
+  cout<<center.getU()<<endl;
+  cout<<center.getV()<<endl;
+  for(int i = 0; i<width; i++){
+     for(int j = 0; j<height; j++){
+        for(int k = 0; k<numSample; k++){
+           layeredAttenuation[i][j][k] = -1.0;
+        }
+     }
+  }
+
+  //cout<<"building Layer Attenuation map"<<endl;
+  //build LDI
+  for(int i = 0; i<numSample; i++){
+     Camera current = camera;
+     Vec3d randL = lightPos + areaScale * (rand()*1.0/RAND_MAX * 2 - 1) * current.getU() +  areaScale * (rand()*1.0/RAND_MAX * 2 - 1) * current.getV();
+     current.setEye(randL);
+     //cout<<"sample: "<<randL<<endl;
+     for(int m = 0; m<width; m++){
+        for(int n = 0; n<height; n++){
+
+              if (TraceUI::m_debug) intersectCache.clear();
+              ray r(Vec3d(0,0,0), Vec3d(0,0,0), ray::VISIBILITY);
+              current.rayThrough((double) m, (double) n, r);
+              //cout<<"position" << r.p<<" direction"<<r.d<<endl;
+  
+              isect is;
+              is.t = -1.0;
+              rt->traceRay(r, 0, is);
+              if(is.t < 0.0001 || is.t > 500){
+                  continue;
+              }
+              //cout<<is.t<<endl; always 1000?
+              //warping tweak for planar area lights
+              Vec3d p = r.at(is.t);
+              Vec3d temp = (p - lightPos);
+              double z = temp.length();
+              temp = temp/(temp * center.getLook());
+              double x = temp * center.getU();
+              double y = temp * center.getV();
+              int xc = ceil(x);
+              int xf = floor(x);
+              int yc = ceil(y);
+              int yf = floor(y);
+              
+              if(xc >=0 && xc < width && yc >=0 && yc <height && layeredAttenuation[xc][yc][i] < z){
+                  //cout<<"modifying: "<<xc<<" "<<yc<<" "<<z<<endl;
+                  layeredAttenuation[xc][yc][i] = z;
+              }
+              if(xf >=0 && xf < width && yc >=0 && yc <height && layeredAttenuation[xf][yc][i] < z){
+                  layeredAttenuation[xf][yc][i] = z;
+              }
+              if(xc >=0 && xc < width && yf >=0 && yf <height && layeredAttenuation[xc][yf][i] < z){
+                  layeredAttenuation[xc][yf][i] = z;
+              }
+              if(xf >=0 && xf < width && yf >=0 && yf <height && layeredAttenuation[xf][yf][i] < z){
+                  layeredAttenuation[xf][yf][i] = z;
+              }
+        }
+     }
+  }
+
+}
+
+double Scene::computeAreaAttenuation(double px, double py, double pz, RayTracer* rt){
+  //cout<<"computing attenuation"<<endl;
+
+  if(pz < 0.0001){
+     return 0.0;
+  }
+
+  if (TraceUI::m_debug) intersectCache.clear();
+  ray r(Vec3d(0,0,0), Vec3d(0,0,0), ray::VISIBILITY);
+  getCamera().rayThrough(px,py,r);
+  Vec3d p = r.at(pz);
+
+  Vec3d temp = (p - center.getEye());
+  double z = temp.length();
+  temp = temp/(temp * center.getLook());
+  int x = round(temp * center.getU());
+  int y = round(temp * center.getV());
+
+  if(x < 0 || x >= width || y<0 || y>=height){
+
+     return 0.0;
+  } 
+  double attenuation = 0.0;
+  for(int k = 0; k< numSample; k++){
+     //cout<<"z "<<z<<" attenuation: "<<layeredAttenuation[x][y][k];
+     if(z < layeredAttenuation[x][y][k] + 0.0001){
+         attenuation += 1.0/numSample;
+     }
+  }
+  return attenuation;
+
+}
 void Scene::buildKdTree(){
   kdtree = new KdTree();
   kdtree->objects = boundedobjects;

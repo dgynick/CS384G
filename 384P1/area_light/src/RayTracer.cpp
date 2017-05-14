@@ -33,13 +33,13 @@ bool debugMode = true;
 // enter the main ray-tracing method, getting things started by plugging
 // in an initial ray weight of (0.0,0.0,0.0) and an initial recursion depth of 0.
 
-Vec3d RayTracer::trace(double x, double y)
+Vec3d RayTracer::trace(double x, double y, isect& i)
 {
   // Clear out the ray cache in the scene for debugging purposes,
   if (TraceUI::m_debug) scene->intersectCache.clear();
   ray r(Vec3d(0,0,0), Vec3d(0,0,0), ray::VISIBILITY);
   scene->getCamera().rayThrough(x,y,r);
-  Vec3d ret = traceRay(r, traceUI->getDepth());
+  Vec3d ret = traceRay(r, traceUI->getDepth(), i);
   ret.clamp();
   return ret;
 }
@@ -58,7 +58,10 @@ Vec3d RayTracer::tracePixel(int i, int j, int supersamplePixels)
                 for(int c = 0; c < supersamplePixels; c++){
                 	double x = (i + (r + 0.5)/supersamplePixels - 0.5)/double(buffer_width);
 			double y = (j + (c + 0.5)/supersamplePixels - 0.5)/double(buffer_height);
-                        col += trace(x, y);
+                        isect i;
+                        Vec3d temp = trace(x, y, i);
+                        temp *= scene->computeAreaAttenuation(x, y, i.t, this);
+                        col += temp;
                 }
         }
         
@@ -66,7 +69,7 @@ Vec3d RayTracer::tracePixel(int i, int j, int supersamplePixels)
 	
 
 	col /= (supersamplePixels * supersamplePixels);
-        
+
 
         
         unsigned char *pixel = buffer + ( i + j * buffer_width ) * 3;
@@ -79,9 +82,9 @@ Vec3d RayTracer::tracePixel(int i, int j, int supersamplePixels)
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
-Vec3d RayTracer::traceRay(ray& r, int depth)
+Vec3d RayTracer::traceRay(ray& r, int depth, isect& i)
 {
-	isect i;
+
 	Vec3d colorC;
 
 	if(scene->intersect(r, i)) {
@@ -125,7 +128,8 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
                  h.normalize();
                  Vec3d r = d + 2 * (-d * h) * h;
                  ray temp(q, r, ray::REFLECTION);
-                 Vec3d refl = traceRay(temp, depth - 1);
+                 isect j;
+                 Vec3d refl = traceRay(temp, depth - 1, j);
                  colorC += refl*m.kr(i)/traceUI->getNumOfRays();
             }
 
@@ -143,7 +147,8 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 	    if(st.length() < 1){
 	      //no TIR
               ray temp2(q, st - n * sqrt(1 - st.length2()), ray::REFRACTION);
-              Vec3d refr = traceRay(temp2, depth - 1);
+              isect j;
+              Vec3d refr = traceRay(temp2, depth - 1, j);
               refr *= m.kt(i);
 	      colorC += refr;
 	    }
@@ -226,8 +231,8 @@ bool RayTracer::loadScene( char* fn ) {
 	}
 
 	if( !sceneLoaded() ) return false;
-
 	scene -> buildKdTree();
+        scene -> buildAreaLight(this);
 	return true;
 }
 

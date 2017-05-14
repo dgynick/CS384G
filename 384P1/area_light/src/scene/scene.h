@@ -25,6 +25,7 @@
 #include "../vecmath/vec.h"
 #include "../vecmath/mat.h"
 #include <stdio.h>
+#include "../RayTracer.h"
 
 class Light;
 class Scene;
@@ -361,6 +362,8 @@ public:
   const BoundingBox& bounds() const { return sceneBounds; }
 
   void buildKdTree();
+  void buildAreaLight(RayTracer* rt);
+  double computeAreaAttenuation(double x, double y, double z, RayTracer* rt);
 
  private:
   std::vector<Geometry*> objects;
@@ -382,6 +385,13 @@ public:
   BoundingBox sceneBounds;
   
   KdTree* kdtree;
+
+  Camera center; //planar area light center
+  int width = 100;
+  int height = 100;
+  double areaScale = 0.0;
+  int numSample = 40;
+  double layeredAttenuation[100][100][40];
 
  public:
   // This is used for debugging purposes only.

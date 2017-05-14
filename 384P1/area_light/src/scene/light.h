@@ -74,7 +74,7 @@ public:
 	}
 
 protected:
-	Vec3d position;
+	
 
 	// These three values are the a, b, and c in the distance
 	// attenuation function (from the slide labelled 
@@ -87,6 +87,7 @@ protected:
 public:
 	void glDraw(GLenum lightID) const;
 	void glDraw() const;
+        Vec3d position;
 
 protected:
 
