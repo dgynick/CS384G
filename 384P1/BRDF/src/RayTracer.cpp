@@ -102,15 +102,15 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 	    //reflection
             Vec3d n = i.N;
 
-	    /*Vec3d d = r.getDirection();
+	    Vec3d d = r.getDirection();
 	    Vec3d q = r.getPosition() + d * i.t;
 	    Vec3d r1 = d + 2 * (-d * n) * n; // reflection direction
             ray temp1(q, r1, ray::REFLECTION);
             Vec3d refl = traceRay(temp1, depth - 1);
             refl *= m.kr(i);
-	    colorC += refl;*/
+	    colorC += refl;
 
-            Vec3d d = r.getDirection();
+            /*Vec3d d = r.getDirection();
             Vec3d q = r.getPosition() + d * i.t;
             Vec3d binorm = crossprod(i.N, i.tangent);
             for(int k =0; k<traceUI->getNumOfRays(); k++){
@@ -127,7 +127,7 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
                  ray temp(q, r, ray::REFLECTION);
                  Vec3d refl = traceRay(temp, depth - 1);
                  colorC += refl*m.kr(i)/traceUI->getNumOfRays();
-            }
+            }*/
 
 	    //transmissive
         Vec3d si = d + (-d * n) * n;

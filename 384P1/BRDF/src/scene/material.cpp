@@ -74,8 +74,8 @@ Vec3d Material::shade(Scene *scene, const ray& r, const isect& i) const
     tempc = l->getColor();
     tempc *= atten;
     
-    //this part works the best
-    /*Vec3d L = l -> getDirection(Q);
+    //Ward's BRDF
+    Vec3d L = l -> getDirection(Q);
     double dotLN = i.N * L;//cos theta 
 
     Vec3d halfway = (L - r.getDirection());
@@ -83,20 +83,11 @@ Vec3d Material::shade(Scene *scene, const ray& r, const isect& i) const
     float dotHN = halfway * i.N;
     float dotHTAlphaX = halfway * i.tangent/ALPHA_X;
     float dotHBAlphaY = halfway * binormal/ALPHA_Y;
-    tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i)/(4 * PI *ALPHA_X * ALPHA_Y) * sqrt(max(0.0, dotLN/dotVN)) * exp(-2.0 * (dotHTAlphaX * dotHTAlphaX + dotHBAlphaY * dotHBAlphaY)/(1.0 + dotHN));*/
-    
-    /*double sinThetaI = sqrt(1 - dotLN * dotLN);
-    double cosPhiI = L * i.tangent;
-    double sinPhiI = L * binormal;
-    double hnorm = sqrt(2 + 2 * sinThetaI * sinThetaR * (sinPhiI * sinPhiR + cosPhiI * cosPhiR) + 2 * dotLN * dotVN);
-    double dotHTAlphaX = (sinThetaR * cosPhiR + sinThetaI * cosPhiI)/hnorm/ALPHA_X;
-    double dotHBAlphaY = (sinThetaR * sinPhiR + sinThetaI * sinPhiI)/hnorm/ALPHA_Y;
-    double dotHN = (dotLN + dotVN)/hnorm;
-    tempc *= sinThetaI;
-    tempc *= kd(i) * dotLN/PI  + ks(i)/(4 * PI *ALPHA_X * ALPHA_Y) * sqrt(max(0.0, dotLN/dotVN)) * exp(-2.0 * (dotHTAlphaX * dotHTAlphaX + dotHBAlphaY * dotHBAlphaY)/(1.0 + dotHN));*/
+    tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i)/(4 * PI *ALPHA_X * ALPHA_Y) * sqrt(max(0.0, dotLN/dotVN)) * exp(-2.0 * (dotHTAlphaX * dotHTAlphaX + dotHBAlphaY * dotHBAlphaY)/(1.0 + dotHN));
     
     
-    tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i) * pow(max(V * l -> getDirection(Q), 0.0), shininess(i));
+    //Phong's BRDF
+    //tempc *= kd(i) * ((l -> getDirection(Q)) * i.N) + ks(i) * pow(max(V * l -> getDirection(Q), 0.0), shininess(i));
     color += tempc;
   }
 

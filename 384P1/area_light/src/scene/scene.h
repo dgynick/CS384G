@@ -389,7 +389,7 @@ public:
   Camera center; //planar area light center
   int width = 100;
   int height = 100;
-  double areaScale = 0.0;
+  double areaScale = 0.2;
   int numSample = 40;
   double layeredAttenuation[100][100][40];
 

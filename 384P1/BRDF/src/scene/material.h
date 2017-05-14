@@ -11,8 +11,8 @@
 #include "../vecmath/mat.h"
 #include <string>
 
-#define ALPHA_X 0.05
-#define ALPHA_Y 0.16 
+#define ALPHA_X 0.076
+#define ALPHA_Y 0.085
 #define PI 3.1415926
 
 
