@@ -10,6 +10,7 @@
 #include "../vecmath/vec.h"
 #include "../vecmath/mat.h"
 #include <string>
+#include <iostream>
 
 class Scene;
 class ray;
@@ -89,6 +90,10 @@ public:
        : _textureMap( tex )
     { }
 
+    explicit MaterialParameter (string t)
+      : _tname( t ), _textureMap( 0 )
+    { }
+
     MaterialParameter()
        : _value( 0.0, 0.0, 0.0 ), _textureMap( 0 )
     { }
@@ -134,7 +139,6 @@ public:
       _value[2] = rhs;
       _textureMap = 0;
     }
-
 	bool isZero() { return _value.iszero(); }
 
     Vec3d& operator+=( const Vec3d& rhs )
@@ -144,6 +148,7 @@ public:
     }
 
     Vec3d value( const isect& is ) const;
+    string textureValue () const;
     double intensityValue( const isect& is ) const;
 
 	// Use this to determine if the particular parameter is
@@ -153,6 +158,7 @@ public:
 private:
     Vec3d _value;
     TextureMap* _textureMap;
+    string _tname;
 };
 
 class Material
@@ -168,13 +174,14 @@ public:
         , _kt( Vec3d( 0.0, 0.0, 0.0 ) )
 		, _refl(0)
 		, _trans(0)
-        , _shininess( 0.0 ) 
+        , _shininess( 0.0 )
+        , _textureName ( "" )
 		, _index(1.0) {}
 
     Material( const Vec3d& e, const Vec3d& a, const Vec3d& s, 
-              const Vec3d& d, const Vec3d& r, const Vec3d& t, double sh, double in )
+              const Vec3d& d, const Vec3d& r, const Vec3d& t, double sh, double in, string tname)
         : _ke( e ), _ka( a ), _ks( s ), _kd( d ), _kr( r ), _kt( t ), 
-          _shininess( Vec3d(sh,sh,sh) ), _index( Vec3d(in,in,in) ) { setBools(); }
+          _shininess( Vec3d(sh,sh,sh) ), _index( Vec3d(in,in,in) ), _textureName (tname) { setBools(); }
 
 	virtual Vec3d shade( Scene *scene, const ray& r, const isect& i ) const;
 
@@ -216,6 +223,8 @@ public:
 
     double index( const isect& i ) const { return _index.intensityValue(i); }
 
+    string getTextureName () const { return _textureName.textureValue(); }
+
     // setting functions accepting primitives (Vec3d and double)
     void setEmissive( const Vec3d& ke )     { _ke.setValue( ke ); }
     void setAmbient( const Vec3d& ka )      { _ka.setValue( ka ); }
@@ -238,6 +247,7 @@ public:
     void setShininess( const MaterialParameter& shininess )    
                                                                { _shininess = shininess; }
     void setIndex( const MaterialParameter& index )            { _index = index; }
+    void setTextureName( const MaterialParameter& t)            { _textureName = t;}
 
 	// get booleans for reflection and refraction
 	bool Refl() const { return _refl; }
@@ -259,9 +269,10 @@ private:
 	bool _recur;							  // either one
 	bool _spec;								  // any kind of specular?
 	bool _both;								  // reflection and transmission
-    
-    MaterialParameter _shininess;
-    MaterialParameter _index;                 // index of refraction
+
+  MaterialParameter _textureName;
+  MaterialParameter _shininess;
+  MaterialParameter _index;                 // index of refraction
 
 	void setBools() {
 		_refl = !_kr.isZero();

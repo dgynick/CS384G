@@ -38,9 +38,9 @@ Vec3d RayTracer::trace(double x, double y)
   if (TraceUI::m_debug) scene->intersectCache.clear();
   ray r(Vec3d(0,0,0), Vec3d(0,0,0), ray::VISIBILITY);
   scene->getCamera().rayThrough(x,y,r);
-  Vec3d ret = traceRay(r, traceUI->getDepth());
-  TextureMapper textureMapper;
-  // = ret[1] * textureMapper.fire(Vec2d(x*50 , y*50 ));
+  Vec3d ret = traceRay(r, traceUI->getDepth(), x, y);
+  // TextureMapper textureMapper;
+  // Vec3d ret = textureMapper.marble(Vec2d(x , y ));
   ret.clamp();
   return ret;
 }
@@ -74,7 +74,7 @@ Vec3d RayTracer::tracePixel(int i, int j, int supersamplePixels)
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
-Vec3d RayTracer::traceRay(ray& r, int depth)
+Vec3d RayTracer::traceRay(ray& r, int depth, double x, double y)
 {
 	isect i;
 	Vec3d colorC;
@@ -90,7 +90,29 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-	  const Material& m = i.getMaterial();
+	  const Material& mo = i.getMaterial();
+	  string textureName = mo.getTextureName();
+	  TextureMapper textureMapper;
+	  Vec3d textureColor;
+	  bool changed = true;
+	  if (textureName == "marble") {
+	  	textureColor = textureMapper.marble(Vec2d(x , y ));
+	  }
+	  else if (textureName == "fire") {
+	  	textureColor = textureMapper.fire(Vec2d(x*50 , y *50));
+	  }
+	  else if (textureName == "cloud") {
+	  	textureColor = textureMapper.cloud(Vec2d(x*20, y*20 ));
+	  } else {
+	  	changed = false;
+	  }
+	  Material m;
+	  if (changed) {
+	  	m = Material(mo.ke(i), mo.ka(i), mo.ks(i), textureColor, mo.kr(i), mo.kt(i), mo.shininess(i), mo.index(i), textureName);
+	  } else {
+	  	m = mo;
+	  }
+	   	  
 	  colorC = m.shade(scene, r, i);
       if(depth > 0){
 	    //reflection
@@ -99,7 +121,7 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 	    Vec3d n = i.N;
 	    Vec3d r1 = d + 2 * (-d * n) * n; // reflection direction
             ray temp1(q, r1, ray::REFLECTION);
-            Vec3d refl = traceRay(temp1, depth - 1);
+            Vec3d refl = traceRay(temp1, depth - 1, x, y);
             refl *= m.kr(i);
 	    colorC += refl;
 
@@ -117,13 +139,12 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 	    if(st.length() < 1){
 	      //no TIR
               ray temp2(q, st - n * sqrt(1 - st.length2()), ray::REFRACTION);
-              Vec3d refr = traceRay(temp2, depth - 1);
+              Vec3d refr = traceRay(temp2, depth - 1, x, y);
               refr *= m.kt(i);
 	      colorC += refr;
 	    }
 	    
 	  }
-
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case

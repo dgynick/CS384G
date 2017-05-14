@@ -1039,6 +1039,10 @@ Material* Parser::parseMaterial( Scene* scene, const Material& parent )
          _tokenizer.Read( SEMICOLON );
          break;
 
+      case TEXTURE:
+         mat->setTextureName( parseScalarMaterialParameter(scene) );
+         break;
+
       case RBRACE:
         _tokenizer.Read( RBRACE );
         if( ! name.empty() )
@@ -1094,6 +1098,14 @@ MaterialParameter Parser::parseScalarMaterialParameter( Scene* scene )
     _tokenizer.Read( RPAREN );
     _tokenizer.CondRead(SEMICOLON);
     return MaterialParameter( scene->getTexture( filename ) );
+  }
+  else if( _tokenizer.CondRead( TEXTURE ) )
+  {
+    _tokenizer.Read( LPAREN );
+    string filename = parseIdent();
+    _tokenizer.Read( RPAREN );
+    _tokenizer.CondRead(SEMICOLON);
+    return MaterialParameter( filename );
   }
   else
   {
